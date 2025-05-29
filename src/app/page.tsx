@@ -1,5 +1,7 @@
 "use client";
 import { minutesToDhm, summarizeIssues } from "@/app/utils/jira";
+import { DetailsSection } from "@/app/utils/DetailsSection";
+import { ChevronDownIcon } from "@/app/utils/Icon";
 import { useEffect, useState } from "react";
 
 type SummaryRow = { parentSummary: string; minutes: number };
@@ -142,27 +144,15 @@ export default function Home() {
         {result && (
           <div className="space-y-8 mt-6">
             <section>
-              {/* details 태그는 JSX에서 정상적으로 사용 가능, 오류는 일시적이거나 타입 문제일 수 있음. 실제로는 문제 없음 */}
-              <details
+              <DetailsSection
                 open
-                className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 group"
+                borderColorClass="border-indigo-200"
+                bgColorClass="bg-indigo-50/60"
+                iconColorClass="text-indigo-500"
+                summaryClass="text-indigo-700"
+                icon={<ChevronDownIcon className="w-5 h-5 text-indigo-500" />}
+                title={<>📊 스토리별 할당시간 (분)</>}
               >
-                <summary className="font-semibold cursor-pointer text-indigo-700 text-lg flex items-center gap-2 select-none">
-                  <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-180">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5 text-indigo-500"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 6.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L9.586 10 7.293 7.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  📊 스토리별 할당시간 (분)
-                </summary>
                 <div className="overflow-x-auto mt-2">
                   <table className="w-full border-separate border-spacing-0 text-sm rounded-xl overflow-hidden shadow-sm bg-white/80">
                     <thead>
@@ -205,29 +195,18 @@ export default function Home() {
                     </tbody>
                   </table>
                 </div>
-              </details>
+              </DetailsSection>
             </section>
             <section>
-              <details
+              <DetailsSection
                 open
-                className="rounded-lg border border-blue-200 bg-blue-50/60 p-4 group"
+                borderColorClass="border-blue-200"
+                bgColorClass="bg-blue-50/60"
+                iconColorClass="text-blue-500"
+                summaryClass="text-blue-700"
+                icon={<ChevronDownIcon className="w-5 h-5 text-blue-500" />}
+                title={<>🧮 총합 및 근무일 기준 포맷</>}
               >
-                <summary className="font-semibold cursor-pointer text-blue-700 text-lg flex items-center gap-2 select-none">
-                  <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-180">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5 text-blue-500"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 6.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L9.586 10 7.293 7.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  🧮 총합 및 근무일 기준 포맷
-                </summary>
                 <div className="mt-2 space-y-1">
                   <div className="text-lg font-bold">
                     🧮 총합: {result.total}분
@@ -237,33 +216,21 @@ export default function Home() {
                     분
                   </div>
                   <div className="text-blue-700 font-semibold">
-                    - 📅 근무일 기준 포맷:{" "}
-                    <b>{minutesToDhm(result.total)}</b>
+                    - 📅 근무일 기준 포맷: <b>{minutesToDhm(result.total)}</b>
                   </div>
                 </div>
-              </details>
+              </DetailsSection>
             </section>
             <section>
-              <details
+              <DetailsSection
                 open
-                className="rounded-lg border border-indigo-200 bg-indigo-50/60 p-4 group"
+                borderColorClass="border-indigo-200"
+                bgColorClass="bg-indigo-50/60"
+                iconColorClass="text-indigo-500"
+                summaryClass="text-indigo-700"
+                icon={<ChevronDownIcon className="w-5 h-5 text-indigo-500" />}
+                title={<>👤 사람별 할당 시간</>}
               >
-                <summary className="font-semibold cursor-pointer text-indigo-700 text-lg flex items-center gap-2 select-none">
-                  <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-180">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5 text-indigo-500"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 6.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L9.586 10 7.293 7.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  👤 사람별 할당 시간
-                </summary>
                 <ul className="mt-2 space-y-1">
                   {Object.entries(result.personMinutes).map(([author, m]) => (
                     <li
@@ -282,26 +249,18 @@ export default function Home() {
                     </li>
                   ))}
                 </ul>
-              </details>
+              </DetailsSection>
             </section>
             <section>
-              <details className="rounded-lg border border-blue-200 bg-blue-50/60 p-4 group">
-                <summary className="font-semibold cursor-pointer text-blue-700 text-lg flex items-center gap-2 select-none">
-                  <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-180">
-                    <svg
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      className="w-5 h-5 text-blue-500"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M7.293 6.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L9.586 10 7.293 7.707a1 1 0 010-1.414z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </span>
-                  👤 작업대기/작업중 상태 사람별 할당 시간
-                </summary>
+              <DetailsSection
+                open
+                borderColorClass="border-blue-200"
+                bgColorClass="bg-blue-50/60"
+                iconColorClass="text-blue-500"
+                summaryClass="text-blue-700"
+                icon={<ChevronDownIcon className="w-5 h-5 text-blue-500" />}
+                title={<>👤 작업대기/작업중 상태 사람별 할당 시간</>}
+              >
                 <ul className="mt-2 space-y-1">
                   {Object.entries(result.personMinutesByStatus).map(
                     ([author, m]) => (
@@ -322,7 +281,7 @@ export default function Home() {
                     )
                   )}
                 </ul>
-              </details>
+              </DetailsSection>
             </section>
           </div>
         )}
