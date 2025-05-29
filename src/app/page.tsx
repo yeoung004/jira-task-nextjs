@@ -1,11 +1,11 @@
-import * as React from "react";
-import { useForm, SubmitHandler } from "react-hook-form";
-import { minutesToDhm, summarizeIssues } from "@/app/utils/jira";
-import { DetailsSection } from "@/app/utils/DetailsSection";
-import { ChevronDownIcon } from "@/app/utils/Icon";
+'use client';
 import { AppTitle } from "@/app/utils/AppTitle";
+import { DetailsSection } from "@/app/utils/DetailsSection";
+import { minutesToDhm, summarizeIssues } from "@/app/utils/jira";
 import { JiraForm } from "@/app/utils/JiraForm";
 import { Sidebar } from "@/app/utils/Sidebar";
+import React from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
 
 type SummaryRow = { parentSummary: string; minutes: number };
 type ResultType = {
@@ -49,7 +49,9 @@ export default function Home() {
     const saved = localStorage.getItem("jiraForm");
     if (saved) {
       const values = JSON.parse(saved);
-      Object.entries(values).forEach(([k, v]) => setValue(k as keyof FormValues, String(v)));
+      Object.entries(values).forEach(([k, v]) =>
+        setValue(k as keyof FormValues, String(v))
+      );
     }
   }, [setValue]);
   React.useEffect(() => {
@@ -198,7 +200,10 @@ export default function Home() {
                         {author}
                       </span>
                       <span>
-                        {m}분 <span className="text-gray-500">({minutesToDhm(m)})</span>
+                        {m}분{" "}
+                        <span className="text-gray-500">
+                          ({minutesToDhm(m)})
+                        </span>
                       </span>
                     </li>
                   ))}
@@ -225,7 +230,10 @@ export default function Home() {
                           {author}
                         </span>
                         <span>
-                          {m}분 <span className="text-gray-500">({minutesToDhm(m)})</span>
+                          {m}분{" "}
+                          <span className="text-gray-500">
+                            ({minutesToDhm(m)})
+                          </span>
                         </span>
                       </li>
                     )

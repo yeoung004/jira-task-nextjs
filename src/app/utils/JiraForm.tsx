@@ -1,12 +1,18 @@
 import React from "react";
-import { UseFormRegister, FieldValues } from "react-hook-form";
+import { UseFormRegister } from "react-hook-form";
 
-interface JiraFormProps<T extends FieldValues> {
-  register: UseFormRegister<T>;
+interface JiraFormProps {
+  register: UseFormRegister<{
+    email: string;
+    apiToken: string;
+    project: string;
+    fixVersion: string;
+    authorsInput: string;
+  }>;
   loading: boolean;
 }
 
-export function JiraForm<T extends FieldValues>({ register, loading }: JiraFormProps<T>) {
+export function JiraForm({ register, loading }: JiraFormProps) {
   return (
     <>
       <input
