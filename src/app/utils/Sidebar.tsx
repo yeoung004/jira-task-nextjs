@@ -19,7 +19,7 @@ export function Sidebar({ open, onToggle, children }: SidebarProps) {
       >
         {open ? "←" : "→"}
       </button>
-      <div className="p-6 flex-1 overflow-y-auto">{children}</div>
+      <div className="p-6 flex-1 overflow-y-auto w-full h-full box-border flex flex-col">{children}</div>
     </aside>
   );
 }

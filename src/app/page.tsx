@@ -93,7 +93,10 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)}>
         <AppTitle />
-        <form className="grid gap-3 mb-6" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="flex flex-col gap-3 mb-6 w-full flex-shrink-0 flex-grow-0 box-border"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           <JiraForm register={register} loading={isSubmitting} />
         </form>
         {error && (
@@ -168,7 +171,7 @@ export default function Home() {
                 title={<>🧮 총합 및 근무일 기준 포맷</>}
               >
                 <div className="mt-2 space-y-1">
-                  <div className="text-lg font-bold">
+                  <div className="text-lg font-bold text-gray-700">
                     🧮 총합: {result.total}분
                   </div>
                   <div className="text-gray-700">
