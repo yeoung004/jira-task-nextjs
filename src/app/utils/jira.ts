@@ -41,6 +41,13 @@ export function summarizeIssues(issues: any[]) {
     summaryMap[parentSummary] = (summaryMap[parentSummary] || 0) + minutes;
   }
 
+  // 모든 author에 대해 personMinutesByStatus에 0 기본값 보장
+  for (const author of authorsSet) {
+    if (!(author in personMinutesByStatus)) {
+      personMinutesByStatus[author] = 0;
+    }
+  }
+
   // 총합
   const total = Object.values(summaryMap).reduce((a, b) => a + b, 0);
 
