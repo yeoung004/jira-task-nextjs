@@ -1,8 +1,11 @@
-"use client";
+import * as React from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { minutesToDhm, summarizeIssues } from "@/app/utils/jira";
 import { DetailsSection } from "@/app/utils/DetailsSection";
 import { ChevronDownIcon } from "@/app/utils/Icon";
-import { useEffect, useState } from "react";
+import { AppTitle } from "@/app/utils/AppTitle";
+import { JiraForm } from "@/app/utils/JiraForm";
+import { Sidebar } from "@/app/utils/Sidebar";
 
 type SummaryRow = { parentSummary: string; minutes: number };
 type ResultType = {
@@ -13,136 +16,93 @@ type ResultType = {
   authors: string[];
 };
 
-export default function Home() {
-  const [email, setEmail] = useState("");
-  const [apiToken, setApiToken] = useState("");
-  const [project, setProject] = useState("");
-  const [fixVersion, setFixVersion] = useState("");
-  const [authorsInput, setAuthorsInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<ResultType | null>(null);
-  const [error, setError] = useState("");
+type FormValues = {
+  email: string;
+  apiToken: string;
+  project: string;
+  fixVersion: string;
+  authorsInput: string;
+};
 
-  // 입력값을 localStorage에서 불러오기
-  useEffect(() => {
+export default function Home() {
+  const [result, setResult] = React.useState<ResultType | null>(null);
+  const [error, setError] = React.useState("");
+  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { isSubmitting },
+  } = useForm<FormValues>({
+    defaultValues: {
+      email: "",
+      apiToken: "",
+      project: "",
+      fixVersion: "",
+      authorsInput: "",
+    },
+  });
+
+  // localStorage 연동
+  React.useEffect(() => {
     const saved = localStorage.getItem("jiraForm");
     if (saved) {
-      const { email, apiToken, project, fixVersion, authorsInput } =
-        JSON.parse(saved);
-      setEmail(email || "");
-      setApiToken(apiToken || "");
-      setProject(project || "");
-      setFixVersion(fixVersion || "");
-      setAuthorsInput(authorsInput || "");
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([k, v]) => setValue(k as keyof FormValues, String(v)));
     }
-  }, []);
+  }, [setValue]);
+  React.useEffect(() => {
+    const sub = watch((values) => {
+      localStorage.setItem("jiraForm", JSON.stringify(values));
+    });
+    return () => sub.unsubscribe();
+  }, [watch]);
 
-  // 입력값이 바뀔 때마다 localStorage에 저장
-  useEffect(() => {
-    localStorage.setItem(
-      "jiraForm",
-      JSON.stringify({ email, apiToken, project, fixVersion, authorsInput })
-    );
-  }, [email, apiToken, project, fixVersion, authorsInput]);
-
-  const handleFetch = async () => {
-    setLoading(true);
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     setError("");
     setResult(null);
     try {
-      const authors = authorsInput
+      const authors = data.authorsInput
         .split(",")
         .map((a) => a.trim())
         .filter(Boolean);
       const authorClause = authors.map((a) => `assignee = ${a}`).join(" or ");
-      const jql = `project = ${project} AND fixVersion = "${fixVersion}" AND (${authorClause})`;
+      const jql = `project = ${data.project} AND fixVersion = "${data.fixVersion}" AND (${authorClause})`;
       const res = await fetch("/api/jira", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           jiraUrl: "https://acloset.atlassian.net",
           jql,
-          email,
-          apiToken,
+          email: data.email,
+          apiToken: data.apiToken,
         }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "API Error");
-      setResult(summarizeIssues(data.issues));
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "API Error");
+      setResult(summarizeIssues(resData.issues));
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col items-center justify-center py-10 px-2">
-      <div className="w-full max-w-2xl bg-white/95 shadow-xl rounded-2xl p-8 border border-indigo-100 backdrop-blur-md text-gray-900">
-        <h1 className="text-3xl font-extrabold text-indigo-700 mb-2 flex items-center gap-2">
-          <span>🧾</span> 스토리별 할당 시간 요약 도구
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Jira 이슈를 쉽고 빠르게 요약해주는 대시보드
-        </p>
-        <div className="grid gap-3 mb-6">
-          <input
-            className="border border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition p-3 rounded-lg bg-white/80 placeholder:text-gray-400 text-gray-900"
-            placeholder="Jira 이메일"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="username"
-          />
-          <input
-            className="border border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition p-3 rounded-lg bg-white/80 placeholder:text-gray-400 text-gray-900"
-            placeholder="Jira API Token"
-            type="password"
-            value={apiToken}
-            onChange={(e) => setApiToken(e.target.value)}
-            autoComplete="current-password"
-          />
-          <div className="flex gap-2">
-            <input
-              className="flex-1 border border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition p-3 rounded-lg bg-white/80 placeholder:text-gray-400 text-gray-900"
-              placeholder="프로젝트 키 (예: AG)"
-              value={project}
-              onChange={(e) => setProject(e.target.value)}
-            />
-            <input
-              className="flex-1 border border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition p-3 rounded-lg bg-white/80 placeholder:text-gray-400 text-gray-900"
-              placeholder="Fix Version (예: APP 6.0.0)"
-              value={fixVersion}
-              onChange={(e) => setFixVersion(e.target.value)}
-            />
-          </div>
-          <input
-            className="border border-indigo-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition p-3 rounded-lg bg-white/80 placeholder:text-gray-400 text-gray-900"
-            placeholder="작성자들을 쉼표로 입력 (예: 최영성, 여진석)"
-            value={authorsInput}
-            onChange={(e) => setAuthorsInput(e.target.value)}
-          />
-          <button
-            className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white font-bold rounded-lg p-3 mt-2 shadow-md transition disabled:opacity-60 disabled:cursor-not-allowed"
-            onClick={handleFetch}
-            disabled={loading}
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>{" "}
-                불러오는 중...
-              </span>
-            ) : (
-              <span>Jira에서 데이터 가져오기</span>
-            )}
-          </button>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
+      <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)}>
+        <AppTitle />
+        <form className="grid gap-3 mb-6" onSubmit={handleSubmit(onSubmit)}>
+          <JiraForm register={register} loading={isSubmitting} />
+        </form>
         {error && (
           <div className="text-red-500 mb-4 text-center font-semibold">
             {error}
           </div>
         )}
+      </Sidebar>
+      <main className="flex-1 flex flex-col items-center justify-center py-10 px-2">
         {result && (
-          <div className="space-y-8 mt-6">
+          <div className="space-y-8 mt-6 w-full max-w-2xl">
             <section>
               <DetailsSection
                 open
@@ -150,7 +110,6 @@ export default function Home() {
                 bgColorClass="bg-indigo-50/60"
                 iconColorClass="text-indigo-500"
                 summaryClass="text-indigo-700"
-                icon={<ChevronDownIcon className="w-5 h-5 text-indigo-500" />}
                 title={<>📊 스토리별 할당시간 (분)</>}
               >
                 <div className="overflow-x-auto mt-2">
@@ -204,7 +163,6 @@ export default function Home() {
                 bgColorClass="bg-blue-50/60"
                 iconColorClass="text-blue-500"
                 summaryClass="text-blue-700"
-                icon={<ChevronDownIcon className="w-5 h-5 text-blue-500" />}
                 title={<>🧮 총합 및 근무일 기준 포맷</>}
               >
                 <div className="mt-2 space-y-1">
@@ -228,7 +186,6 @@ export default function Home() {
                 bgColorClass="bg-indigo-50/60"
                 iconColorClass="text-indigo-500"
                 summaryClass="text-indigo-700"
-                icon={<ChevronDownIcon className="w-5 h-5 text-indigo-500" />}
                 title={<>👤 사람별 할당 시간</>}
               >
                 <ul className="mt-2 space-y-1">
@@ -241,10 +198,7 @@ export default function Home() {
                         {author}
                       </span>
                       <span>
-                        {m}분{" "}
-                        <span className="text-gray-500">
-                          ({minutesToDhm(m)})
-                        </span>
+                        {m}분 <span className="text-gray-500">({minutesToDhm(m)})</span>
                       </span>
                     </li>
                   ))}
@@ -258,7 +212,6 @@ export default function Home() {
                 bgColorClass="bg-blue-50/60"
                 iconColorClass="text-blue-500"
                 summaryClass="text-blue-700"
-                icon={<ChevronDownIcon className="w-5 h-5 text-blue-500" />}
                 title={<>👤 작업대기/작업중 상태 사람별 할당 시간</>}
               >
                 <ul className="mt-2 space-y-1">
@@ -272,10 +225,7 @@ export default function Home() {
                           {author}
                         </span>
                         <span>
-                          {m}분{" "}
-                          <span className="text-gray-500">
-                            ({minutesToDhm(m)})
-                          </span>
+                          {m}분 <span className="text-gray-500">({minutesToDhm(m)})</span>
                         </span>
                       </li>
                     )
@@ -285,7 +235,7 @@ export default function Home() {
             </section>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }

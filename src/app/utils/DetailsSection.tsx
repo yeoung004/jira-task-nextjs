@@ -1,5 +1,5 @@
 // 공통 details 섹션 컴포넌트
-import React from "react";
+import * as React from "react";
 import { ChevronDownIcon } from "./Icon";
 
 interface DetailsSectionProps {
@@ -19,19 +19,26 @@ export function DetailsSection({
   bgColorClass = "bg-indigo-50/60",
   iconColorClass = "text-indigo-500",
   summaryClass = "text-indigo-700",
-  icon = <ChevronDownIcon className="w-5 h-5" color="currentColor" />,
+  icon,
   title,
   children,
 }: DetailsSectionProps) {
+  const [isOpen, setIsOpen] = React.useState(open);
   return (
-    <details open={open} className={`rounded-lg border ${borderColorClass} ${bgColorClass} p-4 group`}>
-      <summary className={`font-semibold cursor-pointer text-lg flex items-center gap-2 select-none ${summaryClass}`}>
-        <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-180">
-          {icon}
+    <details open={isOpen} className={`rounded-lg border ${borderColorClass} ${bgColorClass} p-4 group`}>
+      <summary
+        className={`font-semibold cursor-pointer text-lg flex items-center gap-2 select-none ${summaryClass}`}
+        onClick={e => {
+          e.preventDefault();
+          setIsOpen(v => !v);
+        }}
+      >
+        <span className="inline-block w-5 h-5 transition-transform duration-200 group-open:rotate-90">
+          {icon ?? <ChevronDownIcon className={iconColorClass + " w-5 h-5"} open={isOpen} />}
         </span>
         {title}
       </summary>
-      <div className="mt-2 w-full">{children}</div>
+      {isOpen && <div className="mt-2 w-full">{children}</div>}
     </details>
   );
 }
