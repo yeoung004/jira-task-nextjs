@@ -170,13 +170,12 @@ export default function Home() {
                 summaryClass="text-blue-700"
                 title={<>🧮 총합 및 근무일 기준 포맷</>}
               >
-                <div className="mt-2 space-y-1">
+                <div className="mt-2 space-y-1" data-copy-total>
                   <div className="text-lg font-bold text-gray-700">
                     🧮 총합: {result.total}분
                   </div>
                   <div className="text-gray-700">
-                    - 약 {Math.floor(result.total / 60)}시간 {result.total % 60}
-                    분
+                    - 약 {Math.floor(result.total / 60)}시간 {result.total % 60}분
                   </div>
                   <div className="text-blue-700 font-semibold">
                     - 📅 근무일 기준 포맷: <b>{minutesToDhm(result.total)}</b>
@@ -193,7 +192,7 @@ export default function Home() {
                 summaryClass="text-indigo-700"
                 title={<>👤 사람별 할당 시간</>}
               >
-                <ul className="mt-2 space-y-1">
+                <ul className="mt-2 space-y-1" data-copy-person>
                   {Object.entries(result.personMinutes).map(([author, m]) => (
                     <li
                       key={author}
@@ -245,6 +244,54 @@ export default function Home() {
               </DetailsSection>
             </section>
           </div>
+        )}
+        {/* 복사 버튼을 화면 맨 위 오른쪽에 고정 */}
+        {result && (
+          <button
+            type="button"
+            className="fixed top-6 right-8 z-50 bg-white border border-indigo-200 hover:bg-indigo-50 text-indigo-700 font-semibold rounded-lg p-3 transition flex items-center gap-2 shadow-lg"
+            style={{ minWidth: "180px" }}
+            onClick={() => {
+              if (typeof window === "undefined") return;
+              const totalEl = document.querySelector("[data-copy-total]");
+              const personEl = document.querySelector("[data-copy-person]");
+              let text = "";
+              if (totalEl) {
+                text +=
+                  Array.from(totalEl.children)
+                    .map((e) => e.textContent)
+                    .join("\n") + "\n";
+              }
+              if (personEl) {
+                text +=
+                  Array.from(personEl.children)
+                    .map((e) => {
+                      const spans = e.querySelectorAll("span");
+                      return Array.from(spans)
+                        .map((s) => s.textContent)
+                        .join(" ");
+                    })
+                    .join("\n");
+              }
+              if (text) {
+                navigator.clipboard.writeText(text.trim());
+                alert("근무일/사람별 할당 정보가 복사되었습니다!");
+              }
+            }}
+          >
+            <svg
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" />
+              <rect x="3" y="3" width="13" height="13" rx="2" />
+            </svg>
+            근무일/사람별 할당 복사
+          </button>
         )}
       </main>
     </div>

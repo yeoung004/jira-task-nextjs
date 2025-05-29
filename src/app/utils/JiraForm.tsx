@@ -56,6 +56,7 @@ export function JiraForm({ register, loading }: JiraFormProps) {
           <span>Jira에서 데이터 가져오기</span>
         )}
       </button>
+      {/* 기존 JiraForm의 복사 버튼 제거 (이제 상단 고정 버튼만 사용) */}
     </>
   );
 }
