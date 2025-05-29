@@ -8,7 +8,7 @@ export function ChevronDownIcon({ className = "", color = "currentColor", open =
       viewBox="0 0 20 20"
       fill={color}
       className={className + " transition-transform duration-200"}
-      style={{ transform: open ? "rotate(90deg)" : "rotate(0deg)" }}
+      style={{ transform: open ? undefined : "rotate(0deg)" }}
     >
       <path
         fillRule="evenodd"
