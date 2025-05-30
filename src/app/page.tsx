@@ -201,7 +201,7 @@ export default function Home() {
                       <span className="font-medium text-indigo-800">
                         {author}
                       </span>
-                      <span>
+                      <span className="text-gray-500">
                         {m}분{" "}
                         <span className="text-gray-500">
                           ({minutesToDhm(m)})
@@ -231,7 +231,7 @@ export default function Home() {
                         <span className="font-medium text-blue-800">
                           {author}
                         </span>
-                        <span>
+                        <span className="text-gray-500">
                           {m}분{" "}
                           <span className="text-gray-500">
                             ({minutesToDhm(m)})
