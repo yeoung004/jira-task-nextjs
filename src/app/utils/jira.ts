@@ -1,5 +1,31 @@
+// Jira 이슈 타입 정의
+export type JiraIssue = {
+  fields: {
+    summary: string;
+    timetracking?: {
+      originalEstimateSeconds?: number;
+    };
+    parent?: {
+      fields?: {
+        summary?: string;
+        status?: {
+          name?: string;
+        };
+      };
+    };
+    assignee?: {
+      displayName?: string;
+      name?: string;
+      emailAddress?: string;
+    };
+    status?: {
+      name?: string;
+    };
+  };
+};
+
 // Jira 데이터 요약 및 변환 함수 (Python의 summarize_issues_from_api 역할)
-export function summarizeIssues(issues: any[]) {
+export function summarizeIssues(issues: JiraIssue[]) {
   // Parent summary별로 Minutes 합산
   const summaryMap: Record<string, number> = {};
   const personMinutes: Record<string, number> = {};
