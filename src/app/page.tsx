@@ -4,6 +4,7 @@ import { DetailsSection } from "@/app/utils/DetailsSection";
 import { minutesToDhm, summarizeIssues } from "@/app/utils/jira";
 import { JiraForm } from "@/app/utils/JiraForm";
 import { Sidebar } from "@/app/utils/Sidebar";
+import { Toast } from "@/app/utils/Toast";
 import React from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 
@@ -29,6 +30,10 @@ export default function Home() {
   const [result, setResult] = React.useState<ResultType | null>(null);
   const [error, setError] = React.useState("");
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [toast, setToast] = React.useState({
+    visible: false,
+    message: ""
+  });
   const {
     register,
     handleSubmit,
@@ -92,6 +97,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
+      <Toast 
+        message={toast.message}
+        isVisible={toast.visible}
+        onClose={() => setToast(prev => ({ ...prev, visible: false }))}
+      />
       <Sidebar open={sidebarOpen} onToggle={() => setSidebarOpen((v) => !v)}>
         <AppTitle />
         <form
@@ -352,10 +362,20 @@ export default function Home() {
                   .join("\n");
               }
               if (text) {
-                navigator.clipboard.writeText(text.trim());
-                alert(
-                  "Epic별 그룹핑된 스토리 및 근무일/사람별 할당 정보가 복사되었습니다!"
-                );
+                navigator.clipboard.writeText(text.trim())
+                  .then(() => {
+                    setToast({
+                      visible: true,
+                      message: "복사되었습니다!"
+                    });
+                  })
+                  .catch(err => {
+                    console.error("클립보드 복사 오류:", err);
+                    setToast({
+                      visible: true,
+                      message: "복사 중 오류가 발생했습니다. 다시 시도해주세요."
+                    });
+                  });
               }
             }}
           >
