@@ -17,6 +17,12 @@ export type JiraIssue = {
       displayName?: string;
       name?: string;
       emailAddress?: string;
+      avatarUrls?: {
+        "16x16"?: string;
+        "24x24"?: string;
+        "32x32"?: string;
+        "48x48"?: string;
+      };
     };
     status?: {
       name?: string;
@@ -30,7 +36,15 @@ export function summarizeIssues(issues: JiraIssue[]) {
   const summaryMap: Record<string, number> = {};
   const personMinutes: Record<string, number> = {};
   const personMinutesByStatus: Record<string, number> = {};
-  const waitingStatuses = ['To Do', '대기', '작업 대기', 'In Progress', '진행중', '진행 중', '작업 중'];
+  const waitingStatuses = [
+    "To Do",
+    "대기",
+    "작업 대기",
+    "In Progress",
+    "진행중",
+    "진행 중",
+    "작업 중",
+  ];
 
   const authorsSet = new Set<string>();
   const data: { parentSummary: string; minutes: number }[] = [];
@@ -44,21 +58,24 @@ export function summarizeIssues(issues: JiraIssue[]) {
 
     // 사람별 집계용
     const assignee = issue.fields.assignee;
-    let assigneeName = '';
+    let assigneeName = "";
     if (assignee) {
-      assigneeName = assignee.displayName || assignee.name || assignee.emailAddress || '';
+      assigneeName =
+        assignee.displayName || assignee.name || assignee.emailAddress || "";
       assigneeName = assigneeName.trim();
       authorsSet.add(assigneeName);
-      personMinutes[assigneeName] = (personMinutes[assigneeName] || 0) + minutes;
+      personMinutes[assigneeName] =
+        (personMinutes[assigneeName] || 0) + minutes;
     }
 
     // 상태별 집계용
-    let statusName = issue.fields.status?.name?.trim() || '';
+    let statusName = issue.fields.status?.name?.trim() || "";
     if (!statusName && issue.fields.parent) {
-      statusName = issue.fields.parent.fields?.status?.name?.trim() || '';
+      statusName = issue.fields.parent.fields?.status?.name?.trim() || "";
     }
     if (waitingStatuses.includes(statusName) && assigneeName) {
-      personMinutesByStatus[assigneeName] = (personMinutesByStatus[assigneeName] || 0) + minutes;
+      personMinutesByStatus[assigneeName] =
+        (personMinutesByStatus[assigneeName] || 0) + minutes;
     }
   }
 
@@ -77,11 +94,32 @@ export function summarizeIssues(issues: JiraIssue[]) {
   // 총합
   const total = Object.values(summaryMap).reduce((a, b) => a + b, 0);
 
+  // 사람별 아바타 URL 수집
+  const personAvatars: Record<string, string> = {};
+
+  for (const issue of issues) {
+    const assignee = issue.fields.assignee;
+    if (assignee && assignee.avatarUrls && assignee.displayName) {
+      const avatarUrl =
+        assignee.avatarUrls["48x48"] ||
+        assignee.avatarUrls["32x32"] ||
+        assignee.avatarUrls["24x24"] ||
+        assignee.avatarUrls["16x16"];
+      if (avatarUrl) {
+        personAvatars[assignee.displayName.trim()] = avatarUrl;
+      }
+    }
+  }
+
   return {
-    summary: Object.entries(summaryMap).map(([parentSummary, minutes]) => ({ parentSummary, minutes })),
+    summary: Object.entries(summaryMap).map(([parentSummary, minutes]) => ({
+      parentSummary,
+      minutes,
+    })),
     total,
     personMinutes,
     personMinutesByStatus,
+    personAvatars,
     authors: Array.from(authorsSet),
   };
 }
