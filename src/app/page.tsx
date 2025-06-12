@@ -168,7 +168,7 @@ export default function Home() {
                 bgColorClass="bg-blue-50/60"
                 iconColorClass="text-blue-500"
                 summaryClass="text-blue-700"
-                title={<>🧮 총합 및 근무일 기준 포맷</>}
+                title={<>🧮 총합 및 근무일 기준</>}
               >
                 <div className="mt-2 space-y-1" data-copy-total>
                   <div className="text-lg font-bold text-gray-700">
@@ -178,7 +178,7 @@ export default function Home() {
                     - 약 {Math.floor(result.total / 60)}시간 {result.total % 60}분
                   </div>
                   <div className="text-blue-700 font-semibold">
-                    - 📅 근무일 기준 포맷: <b>{minutesToDhm(result.total)}</b>
+                    - 📅 근무일 기준: <b>{minutesToDhm(result.total)}</b>
                   </div>
                 </div>
               </DetailsSection>
@@ -253,9 +253,54 @@ export default function Home() {
             style={{ minWidth: "180px" }}
             onClick={() => {
               if (typeof window === "undefined") return;
+              let text = "📊 스토리별 할당시간 (분)\n";
+              
+              // 스토리별 할당 시간 복사 (Epic으로 그룹핑 및 정렬)
+              if (result.summary && result.summary.length > 0) {
+                // Epic별로 그룹화하고 minute > 0인 항목만 포함
+                const epicGroups: Record<string, {total: number, stories: {summary: string, minutes: number}[]}> = {};
+                
+                result.summary.forEach(row => {
+                  if (row.minutes <= 0) return; // 0분인 항목은 제외
+                  
+                  // Epic 이름 추출 (Epic: 이름 형태로 가정)
+                  const epicMatch = row.parentSummary.match(/^(Epic: .+?)(?:\s*-\s*|\s*:\s*|\s+)/i);
+                  const epicName = epicMatch ? epicMatch[1] : '기타';
+                  
+                  if (!epicGroups[epicName]) {
+                    epicGroups[epicName] = { total: 0, stories: [] };
+                  }
+                  
+                  epicGroups[epicName].stories.push({
+                    summary: row.parentSummary,
+                    minutes: row.minutes
+                  });
+                  epicGroups[epicName].total += row.minutes;
+                });
+                
+                // Epic 그룹을 총 시간 기준으로 내림차순 정렬
+                const sortedEpics = Object.entries(epicGroups)
+                  .sort((a, b) => b[1].total - a[1].total);
+                
+                // 정렬된 Epic 그룹 출력
+                sortedEpics.forEach(([epicName, data]) => {
+                  text += `\n[${epicName}] - 총 ${data.total}분\n`;
+                  
+                  // 각 Epic 내의 스토리들을 시간 기준으로 내림차순 정렬
+                  const sortedStories = data.stories
+                    .sort((a, b) => b.minutes - a.minutes);
+                  
+                  sortedStories.forEach(story => {
+                    text += `  - ${story.summary}: ${story.minutes}분\n`;
+                  });
+                });
+                
+                text += "\n";
+              }
+              
               const totalEl = document.querySelector("[data-copy-total]");
               const personEl = document.querySelector("[data-copy-person]");
-              let text = "";
+              
               if (totalEl) {
                 text +=
                   Array.from(totalEl.children)
@@ -275,7 +320,7 @@ export default function Home() {
               }
               if (text) {
                 navigator.clipboard.writeText(text.trim());
-                alert("근무일/사람별 할당 정보가 복사되었습니다!");
+                alert("Epic별 그룹핑된 스토리 및 근무일/사람별 할당 정보가 복사되었습니다!");
               }
             }}
           >
@@ -290,7 +335,7 @@ export default function Home() {
               <rect x="9" y="9" width="13" height="13" rx="2" />
               <rect x="3" y="3" width="13" height="13" rx="2" />
             </svg>
-            근무일/사람별 할당 복사
+            스토리별/사람별 할당 복사
           </button>
         )}
       </main>
